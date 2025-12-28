@@ -1,14 +1,37 @@
-import { callPlannerAI } from "../services/ai.service.js"
+import fetch from "node-fetch"
 
-export const planner = async (req, res) => {
+export const generatePlan = async (req, res) => {
   try {
-    const result = await callPlannerAI({
-      ...req.body,
-      userId: req.user.id, // useful later
-    })
+    const { destination, days, budget, preferences } = req.body
 
-    res.json(result)
+    if (!destination || !days) {
+      return res.status(400).json({ message: "Missing required fields" })
+    }
+
+    const aiRes = await fetch(
+      `${process.env.AI_SERVICE_URL}/semantic-search`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `
+          Plan a ${days}-day trip to ${destination}.
+          Budget: ${budget || "flexible"}
+          Preferences: ${preferences || "general travel"}
+          `,
+        }),
+      }
+    )
+
+    const aiData = await aiRes.json()
+
+    res.json({
+      destination,
+      days,
+      plan: aiData.results || aiData,
+    })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    console.error(err)
+    res.status(500).json({ message: "Planner failed" })
   }
 }

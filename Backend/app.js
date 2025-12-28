@@ -17,6 +17,9 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use("/api/auth", authRoutes)
+import plannerRoutes from "./routes/planner.routes.js"
+
+app.use("/api/planner", plannerRoutes)
 
 app.get("/api/health", (_, res) => {
   res.json({ status: "ok" })

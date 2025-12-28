@@ -1,8 +1,10 @@
 import api from "./api"
 
-export const getPlan = (payload: {
-  budget: string
+export const generatePlanApi = (data: {
+  destination: string
   days: number
-  season: string
-  style: string
-}) => api.post("/planner", payload)
+  budget?: string
+  preferences?: string
+}) => {
+  return api.post("/planner", data)
+}
