@@ -33,7 +33,7 @@ export default function Profile() {
               <div className="bg-zinc-800/50 p-4 rounded-md">
                 <p className="text-xs text-zinc-400">Authentication</p>
                 <p className="text-sm mt-1">
-                  {user.password ? "Email & Password" : "Google"}
+                  {user.email ? "Email & Password" : "Google"}
                 </p>
               </div>
             </div>
