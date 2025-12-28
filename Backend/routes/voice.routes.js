@@ -1,5 +1,5 @@
 import express from "express"
-import { voice } from "../controllers/voice.controller.js"
+import { voice } from "../controllers/voice.controllers.js"
 import { protect } from "../middlewares/auth.middleware.js"
 
 const router = express.Router()
