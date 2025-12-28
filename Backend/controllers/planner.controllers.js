@@ -1,6 +1,6 @@
 import axios from "axios"
 
-export const getPlan = async (req, res) => {
+export const generatePlan = async (req, res) => {
   try {
     const { prompt } = req.body
 
