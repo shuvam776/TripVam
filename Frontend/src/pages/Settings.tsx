@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { useState } from "react"
-import PageTransition from "@/components/layout/PageTransition"
+import PageTransition from "@/components/Layout/PageTransition"
 
 export default function Settings() {
   const [voiceEnabled, setVoiceEnabled] = useState(true)

@@ -102,7 +102,7 @@ export default function Planner() {
                 placeholder="Food, culture, adventure, nightlife..."
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
-                className="min-h-[80px]"
+                className="min-h-20"
               />
             </div>
           </div>

@@ -16,7 +16,7 @@ export default function NavLink({
           "relative px-1 py-2 transition text-sm",
           "hover:text-orange-400",
           isActive
-            ? "text-orange-500 after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-full after:bg-orange-500"
+            ? "text-orange-500 after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:bg-orange-500"
             : "text-white"
         )
       }
