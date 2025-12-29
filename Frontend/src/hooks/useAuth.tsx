@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, ReactNode } from "react"
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react"
+import api from "@/services/api"
 
 type User = {
   id: string
@@ -6,39 +13,84 @@ type User = {
   email: string
 }
 
+type LoginPayload =
+  | { type: "email"; email: string; password: string }
+  | { type: "google"; token: string }
+
 type AuthContextType = {
   user: User | null
-  login: (data: any) => void
-  logout: () => void
+  loading: boolean
+  login: (payload: LoginPayload) => Promise<void>
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(
-    JSON.parse(localStorage.getItem("user") || "null")
-  )
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const login = (data: any) => {
-    localStorage.setItem("token", data.token)
-    localStorage.setItem("user", JSON.stringify(data.user))
-    setUser(data.user)
+  /* LOAD USER FROM COOKIE */
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const res = await api.get("/auth/me", {
+          withCredentials: true,
+        })
+        setUser(res.data.user)
+      } catch {
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchMe()
+  }, [])
+
+  /* LOGIN HANDLER */
+  const login = async (payload: LoginPayload) => {
+    if (payload.type === "email") {
+      const res = await api.post(
+        "/auth/login",
+        {
+          email: payload.email,
+          password: payload.password,
+        },
+        { withCredentials: true }
+      )
+      setUser(res.data.user)
+    }
+
+    if (payload.type === "google") {
+      const res = await api.post(
+        "/auth/google",
+        { token: payload.token },
+        { withCredentials: true }
+      )
+      setUser(res.data.user)
+    }
   }
 
-  const logout = () => {
-    localStorage.clear()
+  /* LOGOUT */
+  const logout = async () => {
+    await api.post("/auth/logout", {}, { withCredentials: true })
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   )
 }
 
-export const useAuth = () => {
+export function useAuth() {
   const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider")
+  if (!ctx) {
+    throw new Error("useAuth must be used inside AuthProvider")
+  }
   return ctx
 }

@@ -1,35 +1,78 @@
 import { useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 import gsap from "gsap"
+import {
+  Menu,
+  X,
+  User,
+  Settings,
+  LogOut,
+} from "lucide-react"
+
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
-import NavLink from "./NavLink"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 import { useAuth } from "@/hooks/useAuth"
 import AuthModal from "@/components/auth/AuthModal"
-import ProfileMenu from "./ProfileMenu"
+import FeatureExplainerModal from "@/components/models/FeatureExplainerModel"
+import MobileSidebar from "./MobileSidebar"
+
+type FeatureKey = "explore" | "voice" | "community"
+
+const FEATURE_MAP: Record<
+  FeatureKey,
+  { title: string; description: string; path: string }
+> = {
+  explore: {
+    title: "Explore with AI",
+    description:
+      "Discover destinations using intent-based AI. TripVam understands mood, budget, season and travel style — not just keywords.",
+    path: "/explore",
+  },
+  voice: {
+    title: "AI Voice Assistant",
+    description:
+      "Plan your trip hands-free by talking to TripVam’s AI voice assistant and getting spoken recommendations.",
+    path: "/voice",
+  },
+  community: {
+    title: "Traveler Community",
+    description:
+      "Connect with travelers who’ve visited or are planning to visit the same destinations. Real insights, real people.",
+    path: "/community",
+  },
+}
 
 export default function Navbar() {
   const navRef = useRef<HTMLDivElement>(null)
   const lastScroll = useRef(0)
-  const [authOpen, setAuthOpen] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
 
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
 
+  const [authOpen, setAuthOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeFeature, setActiveFeature] =
+    useState<FeatureKey | null>(null)
+
+  /* NAVBAR HIDE / SHOW */
   useEffect(() => {
     const nav = navRef.current
     if (!nav) return
 
     const show = () =>
-      gsap.to(nav, { y: 0, duration: 0.35, ease: "power3.out" })
-
+      gsap.to(nav, { y: 0, duration: 0.3 })
     const hide = () =>
-      gsap.to(nav, { y: -80, duration: 0.35, ease: "power3.out" })
+      gsap.to(nav, { y: -80, duration: 0.3 })
 
     const onScroll = () => {
       const current = window.scrollY
-      if (current < 50) show()
+      if (current < 60) show()
       else if (current > lastScroll.current) hide()
       else show()
       lastScroll.current = current
@@ -48,20 +91,27 @@ export default function Navbar() {
     }
   }, [])
 
-  const goProtected = (path: string) => {
-    if (!user) setAuthOpen(true)
-    else navigate(path)
-    setMobileOpen(false)
+  /* FEATURE CLICK HANDLER */
+  const handleFeatureClick = (feature: FeatureKey) => {
+    setSidebarOpen(false)
+
+    if (!user) {
+      setActiveFeature(feature)
+      return
+    }
+
+    navigate(FEATURE_MAP[feature].path)
   }
 
   return (
     <>
+      {/* NAVBAR */}
       <header
         ref={navRef}
         className="fixed top-0 w-full z-50 bg-black/70 backdrop-blur border-b border-zinc-800"
       >
         <div className="max-w-7xl mx-auto h-16 px-6 flex justify-between items-center text-white">
-          {/* Logo */}
+          {/* LOGO */}
           <span
             className="font-bold cursor-pointer"
             onClick={() => navigate("/")}
@@ -69,67 +119,105 @@ export default function Navbar() {
             Trip<span className="text-orange-500">Vam</span>
           </span>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex gap-8 items-center">
-            <NavLink to="/" label="Home" />
-            <button onClick={() => goProtected("/planner")}>
-              <NavLink to="/planner" label="AI Planner" />
+          {/* DESKTOP NAV */}
+          <nav className="hidden md:flex gap-8">
+            <NavLink to="/">Home</NavLink>
+            <button onClick={() => handleFeatureClick("explore")}>
+              Explore AI
             </button>
-            <button onClick={() => goProtected("/community")}>
-              <NavLink to="/community" label="Community" />
+            <button onClick={() => handleFeatureClick("voice")}>
+              Voice
             </button>
-            <button onClick={() => goProtected("/voice")}>
-              <NavLink to="/voice" label="Voice" />
+            <button onClick={() => handleFeatureClick("community")}>
+              Community
             </button>
           </nav>
 
-          {/* Right */}
+          {/* RIGHT SIDE */}
           <div className="flex items-center gap-3">
-            {user ? (
-              <ProfileMenu />
-            ) : (
+            {!user ? (
               <Button
                 onClick={() => setAuthOpen(true)}
                 className="bg-orange-500 text-black hidden md:block"
               >
                 Get Started
               </Button>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="outline-none">
+                  <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center">
+                    <User size={18} />
+                  </div>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  align="end"
+                  className="bg-zinc-900 border border-zinc-800 text-white"
+                >
+                  <DropdownMenuItem
+                    onClick={() => navigate("/profile")}
+                    className="cursor-pointer"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={() => navigate("/settings")}
+                    className="cursor-pointer"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={logout}
+                    className="cursor-pointer text-red-400"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
 
-            {/* Mobile Toggle */}
+            {/* MOBILE BURGER */}
             <button
               className="md:hidden"
-              onClick={() => setMobileOpen((v) => !v)}
+              onClick={() => setSidebarOpen(true)}
             >
-              {mobileOpen ? <X /> : <Menu />}
+              <Menu />
             </button>
           </div>
         </div>
-
-        {/* Mobile Sheet */}
-        {mobileOpen && (
-          <div className="md:hidden bg-black border-t border-zinc-800 px-6 py-6 space-y-4">
-            <button onClick={() => navigate("/")}>Home</button>
-            <button onClick={() => goProtected("/planner")}>AI Planner</button>
-            <button onClick={() => goProtected("/community")}>Community</button>
-            <button onClick={() => goProtected("/voice")}>Voice</button>
-
-            {!user && (
-              <Button
-                onClick={() => {
-                  setAuthOpen(true)
-                  setMobileOpen(false)
-                }}
-                className="bg-orange-500 text-black w-full mt-4"
-              >
-                Get Started
-              </Button>
-            )}
-          </div>
-        )}
       </header>
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      {/* MOBILE SIDEBAR */}
+      <MobileSidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onFeatureClick={handleFeatureClick}
+      />
+
+      {/* FEATURE EXPLAINER MODAL */}
+      {activeFeature && (
+        <FeatureExplainerModal
+          open
+          onClose={() => setActiveFeature(null)}
+          title={FEATURE_MAP[activeFeature].title}
+          description={FEATURE_MAP[activeFeature].description}
+          onContinue={() => {
+            setActiveFeature(null)
+            setAuthOpen(true)
+          }}
+        />
+      )}
+
+      {/* AUTH MODAL */}
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+      />
     </>
   )
 }

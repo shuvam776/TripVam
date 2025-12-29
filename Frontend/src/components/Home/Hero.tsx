@@ -1,45 +1,33 @@
-import { BackgroundBeams } from "@/components/ui/background-beams"
-import { motion } from "framer-motion"
+import { useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
 
-export default function Hero() {
+export default function Home() {
+  const navigate = useNavigate()
+
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black text-2xl text-white">
-      <BackgroundBeams />
-
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative z-10 text-center max-w-3xl px-6"
-      >
-        <h1 className="text-5xl md:text-6xl font-bold text-zinc-100 leading-tight">
-          Plan smarter.
-          <br />
-          Travel deeper.
-          <span className="text-orange-500"> TripVam</span>
+    <section className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+      <div className="max-w-3xl text-center">
+        <h1 className="text-5xl font-bold mb-6">
+          Travel planned by <span className="text-orange-500">AI</span>
         </h1>
 
-        <p className="mt-6 text-zinc-400 text-lg">
-          Semantic travel intelligence with voice assistance.
-          No noise. Just insight.
+        <p className="text-zinc-400 mb-10">
+          Discover destinations based on mood, budget, season, and intent —
+          not keywords.
         </p>
 
-        <div className="mt-10 flex justify-center gap-4">
-          <a
-            href="/search"
-            className="px-6 py-3 rounded-md bg-orange-500 text-black font-medium"
-          >
-            Explore with AI
-          </a>
-
-          <a
-            href="/voice"
-            className="px-6 py-3 rounded-md border border-zinc-700 text-zinc-200"
-          >
-            Use Voice
-          </a>
-        </div>
-      </motion.div>
-    </div>
+        {/* HERO CTA — UNPROTECTED */}
+        <Button
+          onClick={() => navigate("/explore")}
+          className="
+            bg-orange-500 text-black px-8 py-6 text-lg
+            focus:outline-none focus:ring-0
+            active:bg-orange-500
+          "
+        >
+          Explore with AI
+        </Button>
+      </div>
+    </section>
   )
 }

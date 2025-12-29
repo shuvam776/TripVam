@@ -1,100 +1,89 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/hooks/useAuth"
-import { loginApi, registerApi, googleLoginApi } from "@/services/auth.api"
-import { auth, googleProvider } from "@/lib/firebase"
-import { signInWithPopup } from "firebase/auth"
 import { useState } from "react"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useAuth } from "@/hooks/useAuth"
+import { signInWithPopup } from "firebase/auth"
+import { auth, googleProvider } from "@/lib/firebase"
 
-export default function AuthModal({
-  open,
-  onClose,
-}: {
+type Props = {
   open: boolean
   onClose: () => void
-}) {
+}
+
+export default function AuthModal({ open, onClose }: Props) {
   const { login } = useAuth()
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [name, setName] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  const handleLogin = async () => {
-    const res = await loginApi({ email, password })
-    login(res.data)
-    onClose()
+  const handleEmailLogin = async () => {
+    setLoading(true)
+    try {
+      await login({
+        type: "email",
+        email,
+        password,
+      })
+      onClose()
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleRegister = async () => {
-    const res = await registerApi({ name, email, password })
-    login(res.data)
-    onClose()
-  }
+  const handleGoogleLogin = async () => {
+    setLoading(true)
+    try {
+      const result = await signInWithPopup(auth, googleProvider)
+      const token = await result.user.getIdToken()
 
-  const handleGoogle = async () => {
-    const result = await signInWithPopup(auth, googleProvider)
-    const token = await result.user.getIdToken()
+      await login({
+        type: "google",
+        token,
+      })
 
-    const res = await googleLoginApi(token)
-    login(res.data)
-    onClose()
+      onClose()
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
-        <DialogHeader>
-          <DialogTitle>Get Started</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="bg-zinc-900 text-white border border-zinc-800">
+        <h2 className="text-xl font-semibold">Welcome to TripVam</h2>
 
-        <Tabs defaultValue="login">
-          <TabsList className="grid grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
-          </TabsList>
+        <div className="mt-4 space-y-3">
+          <Input
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            placeholder="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-          <TabsContent value="login" className="space-y-4">
-            <Input placeholder="Email" onChange={e => setEmail(e.target.value)} />
-            <Input
-              type="password"
-              placeholder="Password"
-              onChange={e => setPassword(e.target.value)}
-            />
-            <Button className="w-full bg-orange-500 text-black" onClick={handleLogin}>
-              Login
-            </Button>
-          </TabsContent>
+          <Button
+            onClick={handleEmailLogin}
+            disabled={loading}
+            className="w-full bg-orange-500 text-black"
+          >
+            Continue
+          </Button>
 
-          <TabsContent value="register" className="space-y-4">
-            <Input placeholder="Name" onChange={e => setName(e.target.value)} />
-            <Input placeholder="Email" onChange={e => setEmail(e.target.value)} />
-            <Input
-              type="password"
-              placeholder="Password"
-              onChange={e => setPassword(e.target.value)}
-            />
-            <Button
-              className="w-full bg-orange-500 text-black"
-              onClick={handleRegister}
-            >
-              Register
-            </Button>
-          </TabsContent>
-        </Tabs>
-
-        <Button
-          variant="outline"
-          className="w-full mt-4"
-          onClick={handleGoogle}
-        >
-          Continue with Google
-        </Button>
+          <Button
+            onClick={handleGoogleLogin}
+            variant="outline"
+            disabled={loading}
+            className="w-full"
+          >
+            Continue with Google
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )
