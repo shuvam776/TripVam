@@ -14,5 +14,9 @@ def intent_detection(req: EmbedRequest):
 
 @router.post("/tts")
 def text_to_speech(req: TTSRequest):
-    speak(req.text)
-    return {"status": "spoken"}
+    try:
+        speak(req.text)
+        return {"success": True}
+    except Exception as e:
+        print("TTS ROUTE ERROR:", e)
+        return {"success": False}

@@ -2,9 +2,11 @@ import { useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useAuth } from "@/hooks/useAuth"
 import { signInWithPopup } from "firebase/auth"
+
 import { auth, googleProvider } from "@/lib/firebase"
+import axios from "@/lib/axios"
+import { useAuth } from "@/hooks/useAuth"
 
 type Props = {
   open: boolean
@@ -12,38 +14,61 @@ type Props = {
 }
 
 export default function AuthModal({ open, onClose }: Props) {
-  const { login } = useAuth()
+  const { setUser } = useAuth()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
+  // ---------- EMAIL LOGIN ----------
   const handleEmailLogin = async () => {
     setLoading(true)
     try {
-      await login({
-        type: "email",
+      const res = await axios.post("/auth/login", {
         email,
         password,
       })
+
+      // assume backend returns basic user info
+      setUser({
+        email: res.data?.email ?? email,
+        name: res.data?.name,
+      })
+
       onClose()
+    } catch (err) {
+      console.error("Email login failed", err)
+      alert("Login failed")
     } finally {
       setLoading(false)
     }
   }
 
+  // ---------- GOOGLE LOGIN ----------
   const handleGoogleLogin = async () => {
     setLoading(true)
     try {
+      // 1. Firebase popup
       const result = await signInWithPopup(auth, googleProvider)
-      const token = await result.user.getIdToken()
 
-      await login({
-        type: "google",
-        token,
+      // 2. Firebase ID token
+      const idToken = await result.user.getIdToken()
+
+      // 3. Send token to backend
+      await axios.post("/auth/google", {
+        token: idToken,
+      })
+
+      // 4. Set user locally (NO /me)
+      setUser({
+        email: result.user.email ?? undefined,
+        name: result.user.displayName ?? undefined,
       })
 
       onClose()
+    } catch (err) {
+      console.error("Google login failed", err)
+      alert("Google login failed")
     } finally {
       setLoading(false)
     }
@@ -60,6 +85,7 @@ export default function AuthModal({ open, onClose }: Props) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
+
           <Input
             placeholder="Password"
             type="password"

@@ -1,9 +1,10 @@
 import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
-
+import searchRoutes from "./routes/search.routes.js"
 import authRoutes from "./routes/auth.routes.js"
-
+import voiceRoutes from "./routes/voice.routes.js"
+import plannerRoutes from "./routes/planner.routes.js"
 const app = express()
 console.log(process.env.CORS_ORIGIN)
 app.use(
@@ -15,12 +16,10 @@ app.use(
 
 app.use(express.json())
 app.use(cookieParser())
-
+app.use("/api/voice",voiceRoutes)
 app.use("/api/auth", authRoutes)
-import plannerRoutes from "./routes/planner.routes.js"
 
 app.use("/api/planner", plannerRoutes)
-import searchRoutes from "./routes/search.routes.js"
 
 app.use("/api/search", searchRoutes)
 

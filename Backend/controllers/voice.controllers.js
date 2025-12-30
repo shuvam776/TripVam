@@ -1,10 +1,24 @@
 import { textToSpeech } from "../services/ai.service.js"
 
-export const voice = async (req, res) => {
+export const speakController = async (req, res) => {
   try {
-    const audio = await textToSpeech(req.body.text)
-    res.json(audio)
+    const { text } = req.body
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({
+        message: "text is required",
+      })
+    }
+
+    await textToSpeech(text)
+
+    res.json({
+      success: true,
+    })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    console.error("VOICE ERROR:", err)
+
+    res.status(500).json({
+      message: "Voice service failed",
+    })
   }
 }

@@ -1,8 +1,8 @@
 import express from "express"
-import { voice } from "../controllers/voice.controllers.js"
-import { protect } from "../middlewares/auth.middleware.js"
+import { speakController } from "../controllers/voice.controllers.js"
 
 const router = express.Router()
-router.post("/", protect, voice)
+
+router.post("/", speakController)
 
 export default router

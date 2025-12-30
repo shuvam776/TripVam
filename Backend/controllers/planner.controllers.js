@@ -1,21 +1,26 @@
-import axios from "axios"
-
-export const generatePlan = async (req, res) => {
+export const explorePlanner = async (req, res) => {
   try {
-    const { prompt } = req.body
+    console.log("BODY:", req.body)
 
-    if (!prompt) {
-      return res.status(400).json({ message: "Prompt is required" })
+    const { text } = req.body || {}
+
+    if (!text) {
+      return res.status(400).json({
+        error: "text is required",
+      })
     }
 
-    const response = await axios.post(
-      `${process.env.AI_SERVICE_URL}/planner`,
-      { prompt }
-    )
-
-    res.status(200).json(response.data)
-  } catch (error) {
-    console.error("Planner error:", error.message)
-    res.status(500).json({ message: "Planner failed" })
+    return res.status(200).json({
+      success: true,
+      roadmap: [
+        "Analyze how the user feels",
+        "Identify suitable destinations",
+        "Create a calm travel roadmap",
+      ],
+      input: text,
+    })
+  } catch (err) {
+    console.error("EXPLORE ERROR:", err)
+    return res.status(500).json({ error: "Planner crashed" })
   }
 }
