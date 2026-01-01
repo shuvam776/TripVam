@@ -1,6 +1,10 @@
-from app.models.hf_loader import get_model
+from sentence_transformers import SentenceTransformer
+from app.core.config import MODEL_NAME
 
-def generate_embedding(text: str) -> list[float]:
-    model = get_model()
-    embedding = model.encode(text, normalize_embeddings=True)
-    return embedding.tolist()
+_model = None
+
+def get_model():
+    global _model
+    if _model is None:
+        _model = SentenceTransformer(MODEL_NAME)
+    return _model

@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from app.api.v1.routes import router
+from app.routes.plan import router as plan_router
 
-app = FastAPI(title="AI Semantic Service")
+app = FastAPI()
 
-app.include_router(router)
+app.include_router(plan_router, prefix="/ai")
 
-@app.get("/")
+@app.get("/health")
 def health():
     return {"status": "ok"}
