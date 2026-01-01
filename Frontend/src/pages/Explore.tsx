@@ -21,6 +21,19 @@ export default function Explore() {
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
 
+  // ---------------- HELPERS ----------------
+
+  const buildSpeechText = (data: AIResponse) => {
+    let speech = `${data.title}. ${data.description}.`
+
+    if (data.places && data.places.length > 0) {
+      speech += " Recommended points are. "
+      speech += data.places.map((p, i) => `Point ${i + 1}. ${p}.`).join(" ")
+    }
+
+    return speech
+  }
+
   // ---------------- HANDLERS ----------------
 
   const handleExplore = async () => {
@@ -29,7 +42,7 @@ export default function Explore() {
     setLoading(true)
     setResult(null)
 
-    // reset voice
+    // reset audio
     tts.stop()
     setIsSpeaking(false)
     setIsPaused(false)
@@ -39,14 +52,18 @@ export default function Explore() {
         text: prompt,
       })
 
-      setResult(res.data)
+      const data: AIResponse = res.data
+      setResult(data)
 
-      // auto-speak result
-      tts.speak(res.data.description, {
+      const speechText = buildSpeechText(data)
+
+      tts.speak(speechText, {
         onStart: () => {
           setIsSpeaking(true)
           setIsPaused(false)
         },
+        onPause: () => setIsPaused(true),
+        onResume: () => setIsPaused(false),
         onEnd: () => {
           setIsSpeaking(false)
           setIsPaused(false)
@@ -89,13 +106,13 @@ export default function Explore() {
           intent — not keywords.
         </p>
 
-        {/* INPUT CARD */}
+        {/* INPUT */}
         <Card className="bg-zinc-900 border border-zinc-800 p-6">
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Example: I want a calm mountain trip in March under ₹25k"
-            className="bg-black border-zinc-700 text-white resize-none min-h-[120px]"
+            className="bg-black border-zinc-700 text-white resize-none min-h-30"
           />
 
           <div className="flex justify-end mt-4">
@@ -129,7 +146,7 @@ export default function Explore() {
 
             {/* AUDIO CONTROLS */}
             <div className="mt-6 flex items-center gap-3 bg-zinc-800/60 rounded-lg px-4 py-3">
-              <span className="text-sm text-zinc-400 min-w-[80px]">
+              <span className="text-sm text-zinc-400 min-w-22.5">
                 {isSpeaking
                   ? isPaused
                     ? "Paused"
@@ -140,12 +157,13 @@ export default function Explore() {
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={() =>
-                  tts.speak(result.description, {
+                onClick={() => {
+                  if (!result) return
+                  tts.speak(buildSpeechText(result), {
                     onStart: () => setIsSpeaking(true),
                     onEnd: () => setIsSpeaking(false),
                   })
-                }
+                }}
               >
                 <Volume2 size={18} />
               </Button>
@@ -178,7 +196,7 @@ export default function Explore() {
               </Button>
             </div>
 
-            {/* PLACES / ROADMAP */}
+            {/* POINTS */}
             {result.places && (
               <ul className="mt-6 space-y-2">
                 {result.places.map((place, i) => (

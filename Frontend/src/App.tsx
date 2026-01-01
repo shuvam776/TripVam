@@ -11,6 +11,7 @@ import Settings from "./pages/Settings";
 export default function App() {
   return (
     <BrowserRouter>
+    <div className="w-full">
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
+      </div>
     </BrowserRouter>
   );
 }
