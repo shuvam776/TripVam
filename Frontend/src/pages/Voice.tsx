@@ -27,7 +27,7 @@ export default function Voice() {
   }
 
   return (
-    <section className="min-h-screen bg-black text-white pt-28 px-6 w-screen">
+    <section className="min-h-screen bg-black text-white pt-28 px-6 sm:w-screen">
       <div className="max-w-3xl mx-auto h-screen w- relative">
         <h1 className="text-3xl font-bold mb-6">Voice Assistant</h1>
 
